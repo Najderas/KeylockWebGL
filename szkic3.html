@@ -89,34 +89,43 @@
                 
                 var keyGeometry = createKeyGeometry(key, keyLen);
                 
-                
-                
-                var keyMaterial = new THREE.MeshBasicMaterial({
-                   color:0x8080FF,
-                   side:THREE.DoubleSide
+                var keyMaterial = new THREE.MeshLambertMaterial({
+                    //shading: THREE.FlatShading,
+                    color:0x8080FF,
+                    side:THREE.DoubleSide
                 });
                
                 var keyMesh = new THREE.Mesh( keyGeometry, keyMaterial);
                 keyMesh.position.set(5.0, 5.0, 4.0);
                 scene.add( keyMesh );
                 
-
-
-                
-                
+                /*
+                var a = 3;
+                var b = 5;
+                var table = [
+                {top: a, bottom: b}, {top: b, bottom: a}
+                ]
+                console.log(table[1].top);
+                */
                 
 				// lights
 
-				light = new THREE.DirectionalLight( 0xffffff );
-				light.position.set( 1, 1, 1 );
+				light = new THREE.DirectionalLight( 0x221188 );
+				light.position.set( 0, 0, 50 );
 				scene.add( light );
 
-				light = new THREE.DirectionalLight( 0x002288 );
-				light.position.set( -1, -1, -1 );
+				light = new THREE.DirectionalLight( 0x00A208 );
+				light.position.set( 0, 0, -50 );
 				scene.add( light );
 
 				light = new THREE.AmbientLight( 0x222222 );
 				scene.add( light );
+                
+                // add spotlight for the shadows
+                var spotLight = new THREE.SpotLight(0xffffff);
+                spotLight.position.set(-40, 60, -10);
+                spotLight.castShadow = true;
+                scene.add(spotLight);
 
 
 				// renderer
@@ -141,8 +150,8 @@
                 var geometry = new THREE.Geometry();
                 var verticesPerGeometry2D = (2 * (keyLen-1) + 1 + 10)       // last value could be changed, if createKeyGeometry2D function modified
                 createKeyGeometry2D(geometry, 0 * verticesPerGeometry2D, 0, key, keyLen);
-                createKeyGeometry2D(geometry, 1 * verticesPerGeometry2D, 20, key, keyLen);
-                connectKeyGeometry2D()
+                createKeyGeometry2D(geometry, 1 * verticesPerGeometry2D, 2, key, keyLen);
+                connectKeyGeometry2D(geometry, verticesPerGeometry2D);
                 
                 return geometry;
             }
@@ -183,8 +192,17 @@
             function connectKeyGeometry2D(geometry, verticesInterval) {
                 var index;
                 for (index = 2; index < verticesInterval; index = index + 2) {
-                    //geometry.faces.push(new THREE.Face3(index-2, index, index + verticesInterval -1 );
+                    geometry.faces.push(new THREE.Face3(index-2, index, index + verticesInterval  ));
+                    geometry.faces.push(new THREE.Face3(index-2, index-2 + verticesInterval, index + verticesInterval  ));
                 }
+                for (index = 3; index < verticesInterval; index = index + 2) {
+                    geometry.faces.push(new THREE.Face3(index-2, index, index + verticesInterval  ));
+                    geometry.faces.push(new THREE.Face3(index-2, index-2 + verticesInterval, index + verticesInterval  ));
+                }
+                geometry.faces.push(new THREE.Face3(0, 1, verticesInterval));
+                geometry.faces.push(new THREE.Face3(verticesInterval+1, 1, verticesInterval));
+                geometry.faces.push(new THREE.Face3(2*verticesInterval-1, 2*verticesInterval-2, verticesInterval-1));
+                geometry.faces.push(new THREE.Face3(verticesInterval-2, 2*verticesInterval-2, verticesInterval-1));
             }
             
 
