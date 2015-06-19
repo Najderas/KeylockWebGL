@@ -52,6 +52,18 @@
             var key1 = [
                 3, 2, 2, 2, 1, 1, 2, 3, 3, 4, 5, 4, 5, 4, 3, 3, 3, 4, 3, 4, 5, 5, 5
             ];
+
+            var cylinders_position = [
+            	1, 4, 7, 10, 13, 16, 19
+            ]
+            var cylinders_split = [
+            	3, 4, 5, 4, 3, 5, 7
+            ]
+
+
+            var cylinders_down_mesh = []
+            var cylinders_up_mesh = []
+
             
             var key = key1;
             var keyLen = key.length;
@@ -73,22 +85,22 @@
 				scene = new THREE.Scene();
 				scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
 
-				// world
+				
+				var mesh_bottom;
+				var mesh_top;
+				for (index = 0; index < cylinders_position.length; index++) {
+           			dict = createCylinders(cylinders_position[index], cylinders_split[index]);
+           			cylinders_down_mesh.push(dict["down"]);
+           			cylinders_up_mesh.push(dict["up"]);
+           		}
+                for(index = 0; index < cylinders_down_mesh.length; index++){
+                	scene.add(cylinders_down_mesh[index]);
+                }
+                for(index = 0; index < cylinders_up_mesh.length; index++){
+                	scene.add(cylinders_up_mesh[index]);
+                }
 
-				var geometry = new THREE.CylinderGeometry( 0, 10, 30, 4, 1 );
-				var material =  new THREE.MeshLambertMaterial( { color:0xffffff, shading: THREE.FlatShading } );
-                
-                var mesh = new THREE.Mesh( geometry, material );
-                mesh.position.x = -5;
-                mesh.position.y = -5;
-                mesh.position.z = -5;
-                mesh.updateMatrix();
-                mesh.matrixAutoUpdate = false;
-                scene.add( mesh );
-                
-                
                 var keyGeometry = createKeyGeometry(key, keyLen);
-                
                 
                 
                 var keyMaterial = new THREE.MeshBasicMaterial({
@@ -99,11 +111,6 @@
                 var keyMesh = new THREE.Mesh( keyGeometry, keyMaterial);
                 keyMesh.position.set(5.0, 5.0, 4.0);
                 scene.add( keyMesh );
-                
-
-
-                
-                
                 
 				// lights
 
@@ -145,6 +152,32 @@
                 connectKeyGeometry2D()
                 
                 return geometry;
+            }
+
+            function createCylinders(position, split){
+
+            	var length = 10;
+
+        		var material =  new THREE.MeshLambertMaterial( { color:0xffffff, shading: THREE.FlatShading } );
+                
+            	var geometry_bottom = new THREE.CylinderGeometry(0.5, 0.5, split, 50, 50);					
+                var mesh_bottom = new THREE.Mesh( geometry_bottom, material );
+                mesh_bottom.position.x = position;
+                mesh_bottom.position.y = split/2;
+                mesh_bottom.position.z = 0;
+                mesh_bottom.updateMatrix();
+                mesh_bottom.matrixAutoUpdate = false;
+
+                var geometry_top = new THREE.CylinderGeometry(0.5, 0.5, length-split, 50, 50);				
+                var mesh_top = new THREE.Mesh( geometry_top, material );
+                mesh_top.position.x = position;
+                mesh_top.position.y = split + (length-split)/2;
+                mesh_top.position.z = 0;
+                mesh_top.updateMatrix();
+                mesh_top.matrixAutoUpdate = false;
+                
+                return {"down": mesh_bottom, "up": mesh_top}
+            	
             }
             
             function createKeyGeometry2D(geometry, verticesInterval, zAxis, key, keyLen){
