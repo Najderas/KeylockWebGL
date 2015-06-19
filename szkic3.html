@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Key lock project</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #000;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+				font-weight: bold;
+
+				background-color: #fff;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				color:#000;
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+
+			}
+
+			a {
+				color: red;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="container"></div>
+		
+
+        
+    
+		<script src="three.js"></script>
+
+		<script src="OrbitControls.js"></script>
+
+		<script src="Detector.js"></script>
+		<script src="stats.min.js"></script>
+
+		<script>
+
+			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+			var container, stats;
+			var camera, controls, scene, renderer;
+            var key1 = [
+                3, 2, 2, 2, 1, 1, 2, 3, 3, 4, 5, 4, 5, 4, 3, 3, 3, 4, 3, 4, 5, 5, 5
+            ];
+            
+            var key = key1;
+            var keyLen = key.length;
+            
+			init();
+			render();
+            
+            
+			function init() {
+            
+                console.log(key);
+
+				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
+				camera.position.z = 100;
+
+				controls = new THREE.OrbitControls( camera );
+				controls.addEventListener( 'change', render );
+
+				scene = new THREE.Scene();
+				scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
+
+				// world
+
+				var geometry = new THREE.CylinderGeometry( 0, 10, 30, 4, 1 );
+				var material =  new THREE.MeshLambertMaterial( { color:0xffffff, shading: THREE.FlatShading } );
+                
+                var mesh = new THREE.Mesh( geometry, material );
+                mesh.position.x = -5;
+                mesh.position.y = -5;
+                mesh.position.z = -5;
+                mesh.updateMatrix();
+                mesh.matrixAutoUpdate = false;
+                scene.add( mesh );
+                
+                
+                var keyGeometry = createKeyGeometry(key, keyLen);
+                
+                
+                
+                var keyMaterial = new THREE.MeshBasicMaterial({
+                   color:0x8080FF,
+                   side:THREE.DoubleSide
+                });
+               
+                var keyMesh = new THREE.Mesh( keyGeometry, keyMaterial);
+                keyMesh.position.set(5.0, 5.0, 4.0);
+                scene.add( keyMesh );
+                
+
+
+                
+                
+                
+				// lights
+
+				light = new THREE.DirectionalLight( 0xffffff );
+				light.position.set( 1, 1, 1 );
+				scene.add( light );
+
+				light = new THREE.DirectionalLight( 0x002288 );
+				light.position.set( -1, -1, -1 );
+				scene.add( light );
+
+				light = new THREE.AmbientLight( 0x222222 );
+				scene.add( light );
+
+
+				// renderer
+
+				renderer = new THREE.WebGLRenderer( { antialias: false } );
+				renderer.setClearColor( scene.fog.color, 1 );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				container = document.getElementById( 'container' );
+				container.appendChild( renderer.domElement );
+
+				stats = new Stats();
+				stats.domElement.style.position = 'absolute';
+				stats.domElement.style.top = '0px';
+				stats.domElement.style.zIndex = 100;
+				container.appendChild( stats.domElement );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+			}
+            
+            function createKeyGeometry(key, keyLen){
+                var geometry = new THREE.Geometry();
+                var verticesPerGeometry2D = (2 * (keyLen-1) + 1 + 10)       // last value could be changed, if createKeyGeometry2D function modified
+                createKeyGeometry2D(geometry, 0 * verticesPerGeometry2D, 0, key, keyLen);
+                createKeyGeometry2D(geometry, 1 * verticesPerGeometry2D, 20, key, keyLen);
+                connectKeyGeometry2D()
+                
+                return geometry;
+            }
+            
+            function createKeyGeometry2D(geometry, verticesInterval, zAxis, key, keyLen){
+                geometry.vertices.push(new THREE.Vector3( -4.0, -1.0, zAxis));
+                geometry.vertices.push(new THREE.Vector3( 0.0, key[0], zAxis));
+                geometry.vertices.push(new THREE.Vector3( 0.0, -5.0, zAxis));
+                geometry.faces.push(new THREE.Face3(0 + verticesInterval, 1 + verticesInterval, 2 + verticesInterval));
+                
+                var index;
+                for (index = 1; index < keyLen; index++) {
+                    geometry.vertices.push(new THREE.Vector3( index, key[index], zAxis));
+                    geometry.vertices.push(new THREE.Vector3( index, -5.0, zAxis));
+                    geometry.faces.push(new THREE.Face3((2*index - 1) + verticesInterval, (2*index) + verticesInterval, (2*index + 1) + verticesInterval));
+                    geometry.faces.push(new THREE.Face3((2*index) + verticesInterval, (2*index + 1) + verticesInterval, (2*index + 2) + verticesInterval));
+                    
+                }
+                index--;
+                
+                geometry.vertices.push(new THREE.Vector3( index, 7.0, zAxis));
+                geometry.vertices.push(new THREE.Vector3( index, -5.0, zAxis));
+                geometry.vertices.push(new THREE.Vector3( index + 5, 7.0, zAxis));
+                geometry.vertices.push(new THREE.Vector3( index + 5, -5.0, zAxis));
+                geometry.faces.push(new THREE.Face3((2*index + 3) + verticesInterval, (2*index + 4) + verticesInterval, (2*index + 5) + verticesInterval));
+                geometry.faces.push(new THREE.Face3((2*index + 4) + verticesInterval, (2*index + 5) + verticesInterval, (2*index + 6) + verticesInterval));
+                geometry.vertices.push(new THREE.Vector3( index + 10, 12.0, zAxis));
+                geometry.vertices.push(new THREE.Vector3( index + 10, -10.0, zAxis));
+                geometry.faces.push(new THREE.Face3((2*index + 5) + verticesInterval, (2*index + 6) + verticesInterval, (2*index + 7) + verticesInterval));
+                geometry.faces.push(new THREE.Face3((2*index + 6) + verticesInterval, (2*index + 7) + verticesInterval, (2*index + 8) + verticesInterval));
+                geometry.vertices.push(new THREE.Vector3( index + 17, 12.0, zAxis));
+                geometry.vertices.push(new THREE.Vector3( index + 17, -10.0, zAxis));
+                geometry.faces.push(new THREE.Face3((2*index + 7) + verticesInterval, (2*index + 8) + verticesInterval, (2*index + 9) + verticesInterval));
+                geometry.faces.push(new THREE.Face3((2*index + 8) + verticesInterval, (2*index + 9) + verticesInterval, (2*index + 10) + verticesInterval));
+                
+            }
+            
+            function connectKeyGeometry2D(geometry, verticesInterval) {
+                var index;
+                for (index = 2; index < verticesInterval; index = index + 2) {
+                    //geometry.faces.push(new THREE.Face3(index-2, index, index + verticesInterval -1 );
+                }
+            }
+            
+
+			function onWindowResize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				render();
+
+			}
+
+			function render() {
+				renderer.render( scene, camera );
+				stats.update();
+			}
+
+
+		</script>
+
+	</body>
+</html>
