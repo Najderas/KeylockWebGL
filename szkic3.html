@@ -33,16 +33,20 @@
 
 	<body>
 		<div id="container"></div>
-		
+		<div id="Stats-output">
+        </div>
+        <!-- Div which will hold the Output -->
+        <div id="WebGL-output">
+        </div>
 
         
     
 		<script src="three.js"></script>
 
 		<script src="OrbitControls.js"></script>
-
 		<script src="Detector.js"></script>
 		<script src="stats.min.js"></script>
+        <script type="text/javascript" src="dat.gui.js"></script>
 
 		<script>
 
@@ -107,6 +111,7 @@
                    color:0x8080FF,
                    side:THREE.DoubleSide
                 });
+                
                
                 var keyMesh = new THREE.Mesh( keyGeometry, keyMaterial);
                 keyMesh.position.set(5.0, 5.0, 4.0);
@@ -132,9 +137,25 @@
                 spotLight.castShadow = true;
                 scene.add(spotLight);
 
+                // setup the control gui
+                var controls = new function () {
+                    this.animationMoment = 0.0;
+                    this.changeKey = "key12345";
+
+                    this.changeKey = function (e) {
+                        console.log("change key " + e);
+
+                    }
+                    this.moveKey = function (e) {
+                        console.log("move key " + e);
+                    
+                    }
+                };
+                var gui = new dat.GUI();
+                gui.add(controls, "animationMoment", 0.0, 3.0).onChange(controls.moveKey);
+                gui.add(controls, "changeKey", ['key1', 'key2', 'key3']).onChange(controls.changeKey);
 
 				// renderer
-
 				renderer = new THREE.WebGLRenderer( { antialias: false } );
 				renderer.setClearColor( scene.fog.color, 1 );
 				renderer.setSize( window.innerWidth, window.innerHeight );
