@@ -37,6 +37,7 @@
 		<script src="OrbitControls.js"></script>
 		<script src="Detector.js"></script>
 		<script src="stats.min.js"></script>
+        <script type="text/javascript" src="dat.gui.js"></script>
 		<script>
 
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
@@ -66,7 +67,7 @@
             var counter = 1;
             
 			initializeScene();
-            animateScene();
+           // animateScene();
             
             
 			function initializeScene() {
@@ -129,6 +130,23 @@
                 spotLight.castShadow = true;
                 scene.add(spotLight);
 
+                // setup the control gui
+                var controls2 = new function () {
+                    this.animationMoment = 0.0;
+                    this.changeKey = "key12345";
+
+                    this.changeKey = function (e) {
+                        console.log("change key " + e);
+                    }
+                    this.moveKey = function (e) {
+                        console.log("move key " + e);
+                        updatePositions(e);
+                    
+                    }
+                };
+                var gui = new dat.GUI();
+                gui.add(controls2, "animationMoment", 0.0, 3.0).onChange(controls2.moveKey);
+                gui.add(controls2, "changeKey", ['key1', 'key2', 'key3']).onChange(controls2.changeKey);
 
 				// renderer
 
@@ -148,23 +166,9 @@
 				window.addEventListener( 'resize', onWindowResize, false );
 			}
             
-            function animateScene(){
+            function updatePositions(e){
                 
-                var oneDirection = true;
-
-                requestAnimationFrame(animateScene);
-                counter++;
-
-                
-                
-                if(counter < 700){
-                    keyMesh.position.x -= 0.05;
-                }else{
-                    keyMesh.position.x += 0.05;
-
-                    if(counter > 1400)
-                        counter = 0;
-                }
+                keyMesh.position.x = e*keyLen;
 
                 var distance;
                 for(index = 0; index < cylinders_down_mesh.length; index++){
