@@ -44,19 +44,28 @@
 			var container, stats;
 			var camera, controls, scene, renderer;
             var key1 = [
+                3, 2, 2, 2, 1, 2, 2, 3, 3, 4, 5, 6, 5, 4, 3, 2, 3, 4, 3, 4, 5, 5, 5
+            ];
+            
+            var key2 = [
                 3, 2, 2, 2, 1, 1, 2, 3, 3, 4, 5, 4, 5, 4, 3, 3, 3, 4, 3, 4, 5, 5, 5
             ];
 
-            var cylinders_position = [
-            	1, 4, 7, 10, 13, 16, 19
-            ]
-            
             var cylinders_y_positions = [];
         
+        /*
             var cylinders_split = [
             	3, 4, 5, 4, 3, 5, 7
             ]
+            var cylinders_position = [
+            	1, 4, 7, 10, 13, 16, 19
+            ]
+            */
 
+            var cylinders_split = []
+            
+            var cylinders_position = []
+            
 
             var cylinders_down_mesh = [];
             var cylinders_up_mesh = [];
@@ -88,6 +97,10 @@
 				// add cilinders
 				var mesh_bottom;
 				var mesh_top;
+                for(var i = 1; i< keyLen-1; i+=3) {
+                    cylinders_position.push(i);
+                    cylinders_split.push(8- key[i]);
+                }
 				for (index = 0; index < cylinders_position.length; index++) {
            			dict = createCylinders(cylinders_position[index], cylinders_split[index]);
            			cylinders_down_mesh.push(dict["down"]);
@@ -144,20 +157,26 @@
 
                 // setup the control gui
                 var controls2 = new function () {
-                    this.animationMoment = 0.0;
-                    this.changeKey = "key12345";
+                    this.animationMoment = 2.0;
+                    this.changeKey = "key1";
 
                     this.changeKey = function (e) {
                         console.log("change key " + e);
                     }
                     this.moveKey = function (e) {
                         console.log("move key " + e);
-                        updatePositions(e);
+                        if(e>=0) {
+                            updatePositions(e);
+                        }
+                        else {
+                            updatePositions(0);
+                            rotateKey(e);
+                        }
                     
                     }
                 };
                 var gui = new dat.GUI();
-                gui.add(controls2, "animationMoment", 0.0, 3.0).onChange(controls2.moveKey);
+                gui.add(controls2, "animationMoment", -1.0, 2.0).onChange(controls2.moveKey);
                 gui.add(controls2, "changeKey", ['key1', 'key2', 'key3']).onChange(controls2.changeKey);
 
 				// renderer
@@ -204,8 +223,8 @@
                     else{
                         real_x = cylinder.position.x - keyMesh.position.x ;
                         abs_x = Math.round(real_x);
-                        a_par = key1[abs_x+1] - key1[abs_x];
-                        b_par = key1[abs_x];
+                        a_par = key[abs_x+1] - key[abs_x];
+                        b_par = key[abs_x];
                         x_from_point = real_x - abs_x;
                         diff = a_par * x_from_point + b_par;
                         cylinder.position.y = cylinders_y_positions[index] + diff + 1;
@@ -218,12 +237,14 @@
 
             }
 
+            function rotateKey(value) {
+                //var angle = Math.round(value*90);
+                keyMesh.rotation.x = value*2;
+            }
 
             function renderScene() {
                 renderer.render( scene, camera );
             }
-
-
 
             function createKeyGeometry(key, keyLen){
                 var geometry = new THREE.Geometry();
