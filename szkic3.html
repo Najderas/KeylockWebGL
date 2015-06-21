@@ -33,17 +33,10 @@
 
 	<body>
 		<div id="container"></div>
-		
-
-        
-    
 		<script src="three.js"></script>
-
 		<script src="OrbitControls.js"></script>
-
 		<script src="Detector.js"></script>
 		<script src="stats.min.js"></script>
-
 		<script>
 
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
@@ -63,16 +56,18 @@
 
             var cylinders_down_mesh = []
             var cylinders_up_mesh = []
+            var keyMesh;
 
             
             var key = key1;
             var keyLen = key.length;
+            var counter = 1;
             
-			init();
-			render();
+			initializeScene();
+            animateScene();
             
             
-			function init() {
+			function initializeScene() {
             
                 console.log(key);
 
@@ -80,12 +75,12 @@
 				camera.position.z = 100;
 
 				controls = new THREE.OrbitControls( camera );
-				controls.addEventListener( 'change', render );
+				controls.addEventListener( 'change', renderScene );
 
 				scene = new THREE.Scene();
 				scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
 
-				
+				// add cilinders
 				var mesh_bottom;
 				var mesh_top;
 				for (index = 0; index < cylinders_position.length; index++) {
@@ -100,16 +95,15 @@
                 	scene.add(cylinders_up_mesh[index]);
                 }
 
-                var keyGeometry = createKeyGeometry(key, keyLen);
-                
-                
+                //add key
+                var keyGeometry = createKeyGeometry(key, keyLen);                
                 var keyMaterial = new THREE.MeshBasicMaterial({
                    color:0x8080FF,
                    side:THREE.DoubleSide
                 });
                
-                var keyMesh = new THREE.Mesh( keyGeometry, keyMaterial);
-                keyMesh.position.set(5.0, 5.0, 4.0);
+                keyMesh = new THREE.Mesh( keyGeometry, keyMaterial);
+                keyMesh.position.set(30, 0, -1);
                 scene.add( keyMesh );
                 
                 
@@ -151,6 +145,45 @@
 				window.addEventListener( 'resize', onWindowResize, false );
 			}
             
+            function animateScene(){
+                
+                var oneDirection = true;
+                requestAnimationFrame(animateScene);
+                counter++;
+                if(counter < 100){
+                    keyMesh.position.x -= 0.3;
+                }else{
+                    keyMesh.position.x += 0.3;
+                    if(counter > 200)
+                        counter = 0;
+                }
+                
+                console.log(counter);
+                /*while(true){
+                    if(oneDirection){
+                        keyMesh.rotation.y += 0.01;
+                    }else{
+                        keyMesh.rotation.x += 0.01;
+                    }
+
+                    requestAnimationFrame(animateScene);
+                    counter++;
+                    if(counter > 100){
+                        oneDirection = !oneDirection;
+                        counter = 0;
+                    } 
+                }*/
+                renderScene(); 
+
+            }
+
+
+            function renderScene() {
+                renderer.render( scene, camera );
+            }
+
+
+
             function createKeyGeometry(key, keyLen){
                 var geometry = new THREE.Geometry();
                 var verticesPerGeometry2D = (2 * (keyLen-1) + 1 + 10)       // last value could be changed, if createKeyGeometry2D function modified
@@ -242,14 +275,10 @@
 				camera.updateProjectionMatrix();
 
 				renderer.setSize( window.innerWidth, window.innerHeight );
-				render();
+				renderScene();
 
 			}
 
-			function render() {
-				renderer.render( scene, camera );
-				stats.update();
-			}
 
 
 		</script>
