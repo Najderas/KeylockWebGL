@@ -50,15 +50,17 @@
             var cylinders_position = [
             	1, 4, 7, 10, 13, 16, 19
             ]
-            var cylinders_y_positions = []
-
+            
+            var cylinders_y_positions = [];
+        
             var cylinders_split = [
             	3, 4, 5, 4, 3, 5, 7
             ]
 
 
-            var cylinders_down_mesh = []
-            var cylinders_up_mesh = []
+            var cylinders_down_mesh = [];
+            var cylinders_up_mesh = [];
+            var cones = [];
             var keyMesh;
 
             
@@ -94,6 +96,16 @@
                 for(index = 0; index < cylinders_down_mesh.length; index++){
                 	scene.add(cylinders_down_mesh[index]);
                 }
+                
+                //and cones
+                for (index = 0; index < cylinders_position.length; index++) {
+           			cone = createCone(cylinders_position[index]);
+                    cones.push(cone);
+           		}
+                for(index = 0; index < cones.length; index++){
+                	scene.add(cones[index]);
+                }
+                
                 /*
                 for(index = 0; index < cylinders_up_mesh.length; index++){
                 	scene.add(cylinders_up_mesh[index]);
@@ -169,19 +181,24 @@
             function updatePositions(e){
                 
                 keyMesh.position.x = e*keyLen;
-
+                cone_y = -0.5;
                 var distance;
+                var diff;
                 for(index = 0; index < cylinders_down_mesh.length; index++){
                     cylinder = cylinders_down_mesh[index];
+                    cone = cones[index];
                     if(cylinder.position.x < keyMesh.position.x - 4){
                         cylinder.position.y = cylinders_y_positions[index];
+                        cone.position.y = cone_y;
                     }
                     else if (cylinder.position.x < keyMesh.position.x ){
                         real_x = keyMesh.position.x -cylinder.position.x;
                         a_par = 0.75;
                         b_par = 0;
                         x_from_point = 3 - real_x;
-                        cylinder.position.y = cylinders_y_positions[index] + a_par * x_from_point + b_par + 1;
+                        diff = a_par * x_from_point + b_par;
+                        cylinder.position.y = cylinders_y_positions[index] + diff + 1;
+                        cone.position.y = cone_y + diff + 1;
                     
                     }
                     else{
@@ -190,7 +207,9 @@
                         a_par = key1[abs_x+1] - key1[abs_x];
                         b_par = key1[abs_x];
                         x_from_point = real_x - abs_x;
-                        cylinder.position.y = cylinders_y_positions[index] + a_par * x_from_point + b_par + 1;
+                        diff = a_par * x_from_point + b_par;
+                        cylinder.position.y = cylinders_y_positions[index] + diff + 1;
+                        cone.position.y = cone_y + diff + 1;
                     }
                        
                 }
@@ -241,6 +260,26 @@
                 return {"down": mesh_bottom, "up": mesh_top}
             	
             }
+            
+            function createCone(position){
+
+            	var length = 1;
+
+        		var material =  new THREE.MeshLambertMaterial( { color:0xffffff, shading: THREE.FlatShading } );
+                
+            	var geometry = new THREE.CylinderGeometry(0.5, 0, length, 50, 50);					
+                var mesh_cone = new THREE.Mesh( geometry, material );
+                mesh_cone.position.x = position;
+                mesh_cone.position.y = -0.5
+                mesh_cone.position.z = 0;
+                
+
+                return mesh_cone;
+            	
+            }
+            
+            
+            
             
             function createKeyGeometry2D(geometry, verticesInterval, zAxis, key, keyLen){
                 geometry.vertices.push(new THREE.Vector3( -4.0, -1.0, zAxis));
