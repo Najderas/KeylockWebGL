@@ -33,18 +33,10 @@
 
 	<body>
 		<div id="container"></div>
-		<div id="Stats-output">
-        </div>
-        <!-- Div which will hold the Output -->
-        <div id="WebGL-output">
-        </div>
-
 		<script src="three.js"></script>
 		<script src="OrbitControls.js"></script>
 		<script src="Detector.js"></script>
 		<script src="stats.min.js"></script>
-        <script type="text/javascript" src="dat.gui.js"></script>
-
 		<script>
 
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
@@ -57,6 +49,8 @@
             var cylinders_position = [
             	1, 4, 7, 10, 13, 16, 19
             ]
+            var cylinders_y_positions = []
+
             var cylinders_split = [
             	3, 4, 5, 4, 3, 5, 7
             ]
@@ -99,9 +93,10 @@
                 for(index = 0; index < cylinders_down_mesh.length; index++){
                 	scene.add(cylinders_down_mesh[index]);
                 }
+                /*
                 for(index = 0; index < cylinders_up_mesh.length; index++){
                 	scene.add(cylinders_up_mesh[index]);
-                }
+                }*/
 
                 //add key
                 var keyGeometry = createKeyGeometry(key, keyLen);                
@@ -109,7 +104,6 @@
                    color:0x8080FF,
                    side:THREE.DoubleSide
                 });
-                
                
                 keyMesh = new THREE.Mesh( keyGeometry, keyMaterial);
                 keyMesh.position.set(30, 0, -1);
@@ -135,25 +129,9 @@
                 spotLight.castShadow = true;
                 scene.add(spotLight);
 
-                // setup the control gui
-                var controls = new function () {
-                    this.animationMoment = 0.0;
-                    this.changeKey = "key12345";
-
-                    this.changeKey = function (e) {
-                        console.log("change key " + e);
-
-                    }
-                    this.moveKey = function (e) {
-                        console.log("move key " + e);
-                    
-                    }
-                };
-                var gui = new dat.GUI();
-                gui.add(controls, "animationMoment", 0.0, 3.0).onChange(controls.moveKey);
-                gui.add(controls, "changeKey", ['key1', 'key2', 'key3']).onChange(controls.changeKey);
 
 				// renderer
+
 				renderer = new THREE.WebGLRenderer( { antialias: false } );
 				renderer.setClearColor( scene.fog.color, 1 );
 				renderer.setSize( window.innerWidth, window.innerHeight );
@@ -173,31 +151,46 @@
             function animateScene(){
                 
                 var oneDirection = true;
+
                 requestAnimationFrame(animateScene);
                 counter++;
-                if(counter < 100){
-                    keyMesh.position.x -= 0.3;
+
+                
+                
+                if(counter < 700){
+                    keyMesh.position.x -= 0.05;
                 }else{
-                    keyMesh.position.x += 0.3;
-                    if(counter > 200)
+                    keyMesh.position.x += 0.05;
+
+                    if(counter > 1400)
                         counter = 0;
                 }
-                
-                console.log(counter);
-                /*while(true){
-                    if(oneDirection){
-                        keyMesh.rotation.y += 0.01;
-                    }else{
-                        keyMesh.rotation.x += 0.01;
-                    }
 
-                    requestAnimationFrame(animateScene);
-                    counter++;
-                    if(counter > 100){
-                        oneDirection = !oneDirection;
-                        counter = 0;
-                    } 
-                }*/
+                var distance;
+                for(index = 0; index < cylinders_down_mesh.length; index++){
+                    cylinder = cylinders_down_mesh[index];
+                    if(cylinder.position.x < keyMesh.position.x - 4){
+                        cylinder.position.y = cylinders_y_positions[index];
+                    }
+                    else if (cylinder.position.x < keyMesh.position.x ){
+                        real_x = keyMesh.position.x -cylinder.position.x;
+                        a_par = 0.75;
+                        b_par = 0;
+                        x_from_point = 3 - real_x;
+                        cylinder.position.y = cylinders_y_positions[index] + a_par * x_from_point + b_par + 1;
+                    
+                    }
+                    else{
+                        real_x = cylinder.position.x - keyMesh.position.x ;
+                        abs_x = Math.round(real_x);
+                        a_par = key1[abs_x+1] - key1[abs_x];
+                        b_par = key1[abs_x];
+                        x_from_point = real_x - abs_x;
+                        cylinder.position.y = cylinders_y_positions[index] + a_par * x_from_point + b_par + 1;
+                    }
+                       
+                }
+
                 renderScene(); 
 
             }
@@ -230,16 +223,16 @@
                 mesh_bottom.position.x = position;
                 mesh_bottom.position.y = split/2;
                 mesh_bottom.position.z = 0;
-                mesh_bottom.updateMatrix();
-                mesh_bottom.matrixAutoUpdate = false;
 
+                cylinders_y_positions.push(split/2);
+                
                 var geometry_top = new THREE.CylinderGeometry(0.5, 0.5, length-split, 50, 50);				
                 var mesh_top = new THREE.Mesh( geometry_top, material );
                 mesh_top.position.x = position;
                 mesh_top.position.y = split + (length-split)/2;
                 mesh_top.position.z = 0;
-                mesh_top.updateMatrix();
-                mesh_top.matrixAutoUpdate = false;
+
+                //cylinders_y_positions.push(split + (length-split)/2);
                 
                 return {"down": mesh_bottom, "up": mesh_top}
             	
